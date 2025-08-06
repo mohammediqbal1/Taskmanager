@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monthly Goals Manager</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1><i class="fas fa-bullseye"></i> Monthly Goals Manager</h1>
+            <p class="subtitle">Plan and track your monthly goals effectively</p>
+        </header>
+
+        <div class="navigation-bar">
+            <a href="index.html" class="nav-btn">
+                <i class="fas fa-tasks"></i> Back to Tasks
+            </a>
+            <button class="add-btn" id="addGoalBtn">
+                <i class="fas fa-plus"></i> Set New Goal
+            </button>
+        </div>
+
+        <!-- Progress Overview Section -->
+        <div class="goals-overview">
+            <div class="progress-card">
+                <h3><i class="fas fa-chart-line"></i> Goals Overview</h3>
+                <div class="progress-stats" id="goalsStats">
+                    <div class="stat-item">
+                        <span class="stat-number" id="goalsCompleted">0</span>
+                        <span class="stat-label">Completed</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number" id="goalsInProgress">0</span>
+                        <span class="stat-label">In Progress</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number" id="goalsPending">0</span>
+                        <span class="stat-label">Pending</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number" id="totalGoals">0</span>
+                        <span class="stat-label">Total Goals</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Goals List Section -->
+        <div class="goals-section">
+            <div class="goals-container" id="currentGoals">
+                <h2><i class="fas fa-calendar-alt"></i> Current Month Goals</h2>
+                <div class="goals-list" id="goalsList">
+                    <!-- Goals will be added here dynamically -->
+                </div>
+            </div>
+
+            <div class="goals-container" id="pendingGoals">
+                <h2><i class="fas fa-clock"></i> Pending Goals</h2>
+                <div class="goals-list" id="goalsPendingList">
+                    <!-- Pending goals will be added here dynamically -->
+                </div>
+            </div>
+
+            <div class="goals-container" id="archivedGoals">
+                <h2><i class="fas fa-archive"></i> Goal History</h2>
+                <div class="goals-list" id="goalsArchive">
+                    <!-- Archived goals will be added here dynamically -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Date Selection Modal -->
+        <div class="modal" id="dateSelectionModal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3><i class="fas fa-calendar"></i> Select Goal Period</h3>
+                    <button class="close-btn" id="closeDateModal">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="date-selection">
+                    <div class="preset-periods">
+                        <button onclick="goalsManager.setCustomPeriod('current')">Current Month</button>
+                        <button onclick="goalsManager.setCustomPeriod('next')">Next Month</button>
+                        <button onclick="goalsManager.setCustomPeriod('quarter')">Next Quarter</button>
+                        <button onclick="goalsManager.setCustomPeriod('custom')">Custom Period</button>
+                    </div>
+                    <div class="custom-period">
+                        <div class="form-group">
+                            <label for="customStartDate">Start Date</label>
+                            <input type="date" id="customStartDate">
+                        </div>
+                        <div class="form-group">
+                            <label for="customEndDate">End Date</label>
+                            <input type="date" id="customEndDate">
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button class="btn-submit" onclick="goalsManager.applyCustomPeriod()">Apply</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Add Goal Modal -->
+        <div class="modal" id="goalModal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3><i class="fas fa-bullseye"></i> Set Monthly Goal</h3>
+                    <button class="close-btn" id="closeGoalModal">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <form id="goalForm">
+                    <div class="form-group">
+                        <label for="goalTitle">Goal Title</label>
+                        <input type="text" id="goalTitle" placeholder="e.g., Complete 2 new tenders" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="goalDescription">Description</label>
+                        <textarea id="goalDescription" placeholder="Enter goal details..." required></textarea>
+                    </div>
+                    <div class="form-group date-range">
+                        <div>
+                            <label for="startDate">Start Date</label>
+                            <input type="date" id="startDate" required>
+                        </div>
+                        <div>
+                            <label for="endDate">End Date</label>
+                            <input type="date" id="endDate" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="autoGenerate">
+                            Auto-Generate Month Plan
+                        </label>
+                    </div>
+                    <div id="weeklyMilestones" style="display: none;">
+                        <h4>Weekly Milestones</h4>
+                        <div class="form-group">
+                            <label for="week1">Week 1</label>
+                            <input type="text" id="week1" class="milestone-input" placeholder="Research phase">
+                        </div>
+                        <div class="form-group">
+                            <label for="week2">Week 2</label>
+                            <input type="text" id="week2" class="milestone-input" placeholder="Initial implementation">
+                        </div>
+                        <div class="form-group">
+                            <label for="week3">Week 3</label>
+                            <input type="text" id="week3" class="milestone-input" placeholder="Progress review">
+                        </div>
+                        <div class="form-group">
+                            <label for="week4">Week 4</label>
+                            <input type="text" id="week4" class="milestone-input" placeholder="Final completion">
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn-cancel" id="cancelGoalBtn">Cancel</button>
+                        <button type="submit" class="btn-submit">
+                            <i class="fas fa-plus"></i> Set Goal
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <script src="monthlyGoals.js"></script>
+</body>
+</html>

@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#667eea">
+    <meta name="apple-mobile-web-app-title" content="Task Manager">
+    <title>🛠️ Simple Task Manager</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="mobile.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="manifest" href="manifest.json">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1><i class="fas fa-tasks"></i> Simple Task Manager</h1>
+            <p class="subtitle">Manage your weekly and monthly tasks efficiently</p>
+        </header>
+
+        <div class="add-task-section">
+            <button class="add-btn" id="addTaskBtn">
+                <i class="fas fa-plus"></i> Add Task
+            </button>
+            <a href="monthlyGoals.html" class="add-btn goal-btn">
+                <i class="fas fa-bullseye"></i> Set Monthly Goal
+            </a>
+        </div>
+
+        <!-- Progress Overview Section -->
+        <div class="progress-overview">
+            <div class="progress-card">
+                <h3><i class="fas fa-bullseye"></i> Monthly Goals</h3>
+                <div class="progress-stats" id="monthlyGoalStats">
+                    <div class="stat-item">
+                        <span class="stat-number" id="monthlyGoalProgress">0</span>
+                        <span class="stat-label">Goals Achieved</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number" id="monthlyGoalTotal">0</span>
+                        <span class="stat-label">Total Goals</span>
+                    </div>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="monthlyGoalProgressBar" style="width: 0%"></div>
+                </div>
+            </div>
+            
+            <div class="progress-card">
+                <h3><i class="fas fa-chart-line"></i> Weekly Progress</h3>
+                <div class="progress-stats" id="weeklyProgressStats">
+                    <div class="stat-item">
+                        <span class="stat-number" id="weeklyProgress">0</span>
+                        <span class="stat-label">Tasks Done</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number" id="weeklyTotal">0</span>
+                        <span class="stat-label">Total Tasks</span>
+                    </div>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="weeklyProgressBar" style="width: 0%"></div>
+                </div>
+            </div>
+
+            <div class="progress-card">
+                <h3><i class="fas fa-calendar-day"></i> Daily Progress</h3>
+                <div class="progress-stats" id="dailyProgressStats">
+                    <div class="stat-item">
+                        <span class="stat-number" id="dailyProgress">0</span>
+                        <span class="stat-label">Tasks Done</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number" id="dailyTotal">0</span>
+                        <span class="stat-label">Total Tasks</span>
+                    </div>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="dailyProgressBar" style="width: 0%"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="task-boards">
+            <!-- Daily Tasks Section -->
+            <div class="task-board">
+                <div class="board-header daily">
+                    <h2><i class="fas fa-calendar-day"></i> Daily Tasks</h2>
+                    <span class="task-count" id="dailyCount">0 tasks</span>
+                </div>
+                <div class="daily-reset-options">
+                    <label class="reset-option">
+                        <input type="radio" name="dailyReset" value="remove" checked>
+                        <span>Remove completed tasks daily</span>
+                    </label>
+                    <label class="reset-option">
+                        <input type="radio" name="dailyReset" value="pending">
+                        <span>Keep as pending daily</span>
+                    </label>
+                </div>
+                <div class="task-list" id="dailyTasks">
+                    <div class="empty-state">
+                        <i class="fas fa-clipboard-list"></i>
+                        <p>No daily tasks yet. Add your first task!</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Weekly Tasks Section -->
+            <div class="task-board">
+                <div class="board-header weekly">
+                    <h2><i class="fas fa-calendar-week"></i> Weekly Tasks</h2>
+                    <span class="task-count" id="weeklyCount">0 tasks</span>
+                </div>
+                <div class="task-list" id="weeklyTasks">
+                    <div class="empty-state">
+                        <i class="fas fa-clipboard-list"></i>
+                        <p>No weekly tasks yet. Add your first task!</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Monthly Tasks Section -->
+            <div class="task-board">
+                <div class="board-header monthly">
+                    <h2><i class="fas fa-calendar-alt"></i> Monthly Tasks</h2>
+                    <span class="task-count" id="monthlyCount">0 tasks</span>
+                </div>
+                <div class="task-list" id="monthlyTasks">
+                    <div class="empty-state">
+                        <i class="fas fa-clipboard-list"></i>
+                        <p>No monthly tasks yet. Add your first task!</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Monthly Goals Section -->
+            <div class="task-board">
+                <div class="board-header goals">
+                    <h2><i class="fas fa-bullseye"></i> Monthly Goals</h2>
+                    <span class="task-count" id="goalsCount">0 goals</span>
+                </div>
+                <div class="task-list" id="monthlyGoals">
+                    <div class="empty-state">
+                        <i class="fas fa-bullseye"></i>
+                        <p>No monthly goals yet. Set your first goal!</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Add Task Modal -->
+        <div class="modal" id="taskModal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3><i class="fas fa-plus-circle"></i> Add New Task</h3>
+                    <button class="close-btn" id="closeModal">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <form id="taskForm">
+                    <div class="form-group">
+                        <label for="taskTitle">Task Title</label>
+                        <input type="text" id="taskTitle" placeholder="Enter task title..." required>
+                    </div>
+                    <div class="form-group">
+                        <label for="taskDescription">Description (Optional)</label>
+                        <textarea id="taskDescription" placeholder="Enter task description..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="taskType">Task Type</label>
+                        <select id="taskType" required>
+                            <option value="">Select task type</option>
+                            <option value="daily">📆 Daily Task</option>
+                            <option value="weekly">📅 Weekly Task</option>
+                            <option value="monthly">🗓️ Monthly Task</option>
+                            <option value="goal">🎯 Monthly Goal</option>
+                        </select>
+                    </div>
+                    <div class="form-group" id="dateSettingsGroup">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="customDateSetting">
+                            Set Custom Date
+                        </label>
+                        <div id="dateOptions" style="display: none;">
+                            <div class="date-range">
+                                <div>
+                                    <label for="taskStartDate">Start Date</label>
+                                    <input type="date" id="taskStartDate">
+                                </div>
+                                <div>
+                                    <label for="taskEndDate">End Date</label>
+                                    <input type="date" id="taskEndDate">
+                                </div>
+                            </div>
+                            <div class="quick-dates">
+                                <button type="button" class="date-preset" data-preset="today">Today</button>
+                                <button type="button" class="date-preset" data-preset="tomorrow">Tomorrow</button>
+                                <button type="button" class="date-preset" data-preset="thisWeek">This Week</button>
+                                <button type="button" class="date-preset" data-preset="nextWeek">Next Week</button>
+                                <button type="button" class="date-preset" data-preset="thisMonth">This Month</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group" id="goalDetailsGroup" style="display: none;">
+                        <label for="goalTarget">Goal Target (Optional)</label>
+                        <input type="number" id="goalTarget" placeholder="e.g., 10 (for quantifiable goals)" min="1">
+                        <small>Leave empty for yes/no goals</small>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn-cancel" id="cancelBtn">Cancel</button>
+                        <button type="submit" class="btn-submit">
+                            <i class="fas fa-plus"></i> Add Task
+                        </button>
+                    </div>
+              </form>
+            </div>
+        </div>
+
+        <!-- Monthly Goal Modal -->
+        <div class="modal" id="goalModal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3><i class="fas fa-bullseye"></i> Set Monthly Goal</h3>
+                    <button class="close-btn" id="closeGoalModal">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <form id="goalForm">
+                    <div class="form-group">
+                        <label for="goalTitle">Goal Title</label>
+                        <input type="text" id="goalTitle" placeholder="e.g., Complete 2 new tenders" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="goalDescription">Description</label>
+                        <textarea id="goalDescription" placeholder="Enter goal details..." required></textarea>
+                    </div>
+                    <div class="form-group date-range">
+                        <div>
+                            <label for="startDate">Start Date</label>
+                            <input type="date" id="startDate" required>
+                        </div>
+                        <div>
+                            <label for="endDate">End Date</label>
+                            <input type="date" id="endDate" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="autoGenerate">
+                            Auto-Generate Month Plan
+                        </label>
+                    </div>
+                    <div id="weeklyMilestones" style="display: none;">
+                        <h4>Weekly Milestones</h4>
+                        <div class="form-group">
+                            <label for="week1">Week 1</label>
+                            <input type="text" id="week1" class="milestone-input">
+                        </div>
+                        <div class="form-group">
+                            <label for="week2">Week 2</label>
+                            <input type="text" id="week2" class="milestone-input">
+                        </div>
+                        <div class="form-group">
+                            <label for="week3">Week 3</label>
+                            <input type="text" id="week3" class="milestone-input">
+                        </div>
+                        <div class="form-group">
+                            <label for="week4">Week 4</label>
+                            <input type="text" id="week4" class="milestone-input">
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn-cancel" id="cancelGoalBtn">Cancel</button>
+                        <button type="submit" class="btn-submit">
+                            <i class="fas fa-plus"></i> Set Goal
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Confirmation Modal -->
+        <div class="modal" id="confirmModal">
+            <div class="modal-content confirm-modal">
+                <div class="modal-header">
+                    <h3><i class="fas fa-exclamation-triangle"></i> Confirm Action</h3>
+                </div>
+                <p id="confirmMessage">Are you sure you want to delete this task?</p>
+                <div class="form-actions">
+                    <button type="button" class="btn-cancel" id="confirmCancel">Cancel</button>
+                    <button type="button" class="btn-delete" id="confirmDelete">
+                        <i class="fas fa-trash"></i> Delete
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <footer class="footer">
+            <p>💾 All data is stored locally in your browser</p>
+            <p class="reset-info">
+                <i class="fas fa-info-circle"></i> 
+                Auto-reset: Daily (midnight) | Weekly (Monday) | Monthly (1st) | Goals (monthly)
+            </p>
+            <p class="keyboard-shortcuts">
+                <i class="fas fa-keyboard"></i> 
+                Shortcuts: Ctrl+N (New Task) | Ctrl+E (Export)
+            </p>
+        </footer>
+    </div>
+
+    <nav class="mobile-nav">
+        <a href="#" class="mobile-nav-item active" id="nav-tasks">
+            <i class="fas fa-tasks"></i>
+            <span>Tasks</span>
+        </a>
+        <a href="monthlyGoals.html" class="mobile-nav-item">
+            <i class="fas fa-bullseye"></i>
+            <span>Goals</span>
+        </a>
+        <button class="mobile-nav-item" id="mobile-add-task">
+            <i class="fas fa-plus-circle"></i>
+            <span>Add</span>
+        </button>
+        <button class="mobile-nav-item" id="mobile-filter">
+            <i class="fas fa-filter"></i>
+            <span>Filter</span>
+        </button>
+        <button class="mobile-nav-item" id="mobile-more">
+            <i class="fas fa-ellipsis-h"></i>
+            <span>More</span>
+        </button>
+    </nav>
+
+    <script src="script.js"></script>
+    <script src="mobile.js"></script>
+    <script src="share.js"></script>
+    <script src="sw-register.js"></script>
+</body>
+</html>
