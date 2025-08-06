@@ -1,4 +1,5 @@
 const CACHE_NAME = 'task-manager-v1';
+const BASE_URL = 'https://taskmanager1011.netlify.app';
 const urlsToCache = [
     '/',
     '/index.html',
