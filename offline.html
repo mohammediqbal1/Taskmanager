@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Offline - Task Manager</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            text-align: center;
+            background-color: #f5f7ff;
+            color: #333;
+        }
+
+        .offline-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            margin: 0 0 16px 0;
+            color: #667eea;
+        }
+
+        p {
+            margin: 0 0 24px 0;
+            color: #666;
+            max-width: 400px;
+        }
+
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 24px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        button:hover {
+            background: #5a6fd6;
+        }
+
+        .cached-data {
+            margin-top: 24px;
+            padding: 16px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body>
+    <div class="offline-icon">📡</div>
+    <h1>You're Offline</h1>
+    <p>Don't worry! You can still view and manage your tasks. Changes will sync when you're back online.</p>
+    <button onclick="location.reload()">Try Again</button>
+    <div id="cached-data" class="cached-data">
+        <p>Your tasks are still available offline</p>
+    </div>
+
+    <script>
+        // Check if we have cached data
+        async function checkCachedData() {
+            try {
+                const cache = await caches.open('task-manager-v2');
+                const response = await cache.match('/');
+                if (response) {
+                    document.getElementById('cached-data').style.display = 'block';
+                } else {
+                    document.getElementById('cached-data').style.display = 'none';
+                }
+            } catch (err) {
+                console.error('Error checking cache:', err);
+            }
+        }
+
+        window.addEventListener('load', checkCachedData);
+    </script>
+</body>
+</html>

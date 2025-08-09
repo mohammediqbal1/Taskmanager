@@ -22,6 +22,7 @@ class TaskManager {
                 incomplete: []
             }
         };
+        this.recentHistory = []; // New comprehensive history tracking
         this.init();
     }    init() {
         this.loadTasks();
@@ -76,6 +77,12 @@ class TaskManager {
 
         if (historyData) {
             this.taskHistory = JSON.parse(historyData);
+        }
+
+        // Load recent history
+        const recentHistoryData = localStorage.getItem('recent-history');
+        if (recentHistoryData) {
+            this.recentHistory = JSON.parse(recentHistoryData);
         }
         
         if (resetMode) {
@@ -381,6 +388,9 @@ class TaskManager {
                     return;
             }
 
+            // Add to history
+            this.addToHistory('added', task, type);
+
             // Save and update
             this.saveTasks();
             this.renderTasks();
@@ -512,6 +522,9 @@ class TaskManager {
             this.taskHistory[type].completed.push(completionData);
             this.completedTasks.push(completionData);
             
+            // Add to recent history
+            this.addToHistory('completed', task, type, { completedAt: now.toISOString() });
+            
             // Update task counts immediately
             if (type === 'daily') {
                 const dailyStats = document.getElementById('dailyProgressStats');
@@ -523,6 +536,9 @@ class TaskManager {
                 ...completionData,
                 reason: 'cancelled'
             });
+            
+            // Add to recent history
+            this.addToHistory('cancelled', task, type, { reason: 'cancelled' });
         }
         
         this.removeTaskFromList(task.id, type);
@@ -538,6 +554,33 @@ class TaskManager {
     // Save task history
     saveTaskHistory() {
         localStorage.setItem('task-history', JSON.stringify(this.taskHistory));
+        localStorage.setItem('recent-history', JSON.stringify(this.recentHistory));
+    }
+
+    // Add entry to recent history
+    addToHistory(action, task, type, details = {}) {
+        const historyEntry = {
+            id: Date.now().toString(),
+            action: action, // 'added', 'completed', 'deleted', 'cancelled', 'moved_to_pending'
+            task: {
+                id: task.id,
+                title: task.title,
+                type: type,
+                description: task.description || ''
+            },
+            timestamp: new Date().toISOString(),
+            details: details
+        };
+
+        // Add to beginning of array (most recent first)
+        this.recentHistory.unshift(historyEntry);
+
+        // Keep only last 100 entries to prevent storage bloat
+        if (this.recentHistory.length > 100) {
+            this.recentHistory = this.recentHistory.slice(0, 100);
+        }
+
+        this.saveTaskHistory();
     }
     
     // Load task history
@@ -558,17 +601,20 @@ class TaskManager {
                 task.completedAt = new Date().toISOString();
                 task.completedOverdue = true;
                 this.completedTasks.push({...task, originalType: type});
+                this.addToHistory('completed', task, type, { completedOverdue: true });
                 this.removeTaskFromList(task.id, type);
                 this.showNotification('Task marked as completed', 'success');
                 break;
                 
             case 'pending':
                 this.pendingTasks.push({...task, originalType: type});
+                this.addToHistory('moved_to_pending', task, type, { reason: 'overdue' });
                 this.removeTaskFromList(task.id, type);
                 this.showNotification('Task moved to pending', 'warning');
                 break;
                 
             case 'cancelled':
+                this.addToHistory('cancelled', task, type, { reason: 'overdue' });
                 this.removeTaskFromList(task.id, type);
                 this.showNotification('Task cancelled', 'info');
                 break;
@@ -664,19 +710,30 @@ class TaskManager {
 
         const { id, type } = this.currentTaskToDelete;
         
+        // Find the task before deleting for history
+        let taskToDelete = null;
         switch (type) {
             case 'daily':
+                taskToDelete = this.dailyTasks.find(task => task.id === id);
                 this.dailyTasks = this.dailyTasks.filter(task => task.id !== id);
                 break;
             case 'weekly':
+                taskToDelete = this.weeklyTasks.find(task => task.id === id);
                 this.weeklyTasks = this.weeklyTasks.filter(task => task.id !== id);
                 break;
             case 'monthly':
+                taskToDelete = this.monthlyTasks.find(task => task.id === id);
                 this.monthlyTasks = this.monthlyTasks.filter(task => task.id !== id);
                 break;
             case 'goal':
+                taskToDelete = this.monthlyGoals.find(task => task.id === id);
                 this.monthlyGoals = this.monthlyGoals.filter(task => task.id !== id);
                 break;
+        }
+
+        // Add to history if task was found
+        if (taskToDelete) {
+            this.addToHistory('deleted', taskToDelete, type);
         }
 
         this.saveTasks();
@@ -1089,6 +1146,252 @@ class TaskManager {
         URL.revokeObjectURL(url);
         
         this.showNotification('Tasks exported successfully!', 'success');
+    }
+
+    // Get recent history
+    getRecentHistory(limit = 20) {
+        return this.recentHistory.slice(0, limit);
+    }
+
+    // Clear history
+    clearHistory() {
+        this.recentHistory = [];
+        this.saveTaskHistory();
+        this.showNotification('History cleared successfully!', 'success');
+    }
+
+    // Get history by action type
+    getHistoryByAction(action, limit = 10) {
+        return this.recentHistory.filter(entry => entry.action === action).slice(0, limit);
+    }
+
+    // Get history for today
+    getTodayHistory() {
+        const today = new Date().toDateString();
+        return this.recentHistory.filter(entry => {
+            return new Date(entry.timestamp).toDateString() === today;
+        });
+    }
+
+    // Show history modal
+    showHistoryModal() {
+        this.renderHistoryModal();
+    }
+
+    // Render history modal
+    renderHistoryModal() {
+        // Remove existing history modal
+        const existingModal = document.getElementById('historyModal');
+        if (existingModal) {
+            existingModal.remove();
+        }
+
+        // Create history modal
+        const modal = document.createElement('div');
+        modal.id = 'historyModal';
+        modal.className = 'modal';
+        
+        const recentHistory = this.getRecentHistory(50);
+        const todayHistory = this.getTodayHistory();
+        
+        modal.innerHTML = `
+            <div class="modal-content history-modal">
+                <div class="modal-header">
+                    <h3><i class="fas fa-history"></i> Recent Task History</h3>
+                    <button class="close-btn" onclick="taskManager.hideHistoryModal()">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="history-content">
+                    <div class="history-tabs">
+                        <button class="history-tab active" onclick="taskManager.showHistoryTab('recent')">Recent (${recentHistory.length})</button>
+                        <button class="history-tab" onclick="taskManager.showHistoryTab('today')">Today (${todayHistory.length})</button>
+                        <button class="history-tab" onclick="taskManager.showHistoryTab('completed')">Completed</button>
+                        <button class="history-tab" onclick="taskManager.showHistoryTab('deleted')">Deleted</button>
+                    </div>
+                    <div class="history-list" id="historyList">
+                        ${this.renderHistoryList(recentHistory)}
+                    </div>
+                    <div class="history-actions">
+                        <button class="btn-secondary" onclick="taskManager.clearHistory()">
+                            <i class="fas fa-trash"></i> Clear History
+                        </button>
+                        <button class="btn-secondary" onclick="taskManager.exportHistory()">
+                            <i class="fas fa-download"></i> Export History
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        document.body.appendChild(modal);
+        
+        // Show modal
+        requestAnimationFrame(() => {
+            modal.classList.add('show');
+        });
+
+        // Close on backdrop click
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                this.hideHistoryModal();
+            }
+        });
+    }
+
+    // Hide history modal
+    hideHistoryModal() {
+        const modal = document.getElementById('historyModal');
+        if (modal) {
+            modal.classList.remove('show');
+            setTimeout(() => modal.remove(), 300);
+        }
+    }
+
+    // Show history tab
+    showHistoryTab(tabType) {
+        // Update active tab
+        document.querySelectorAll('.history-tab').forEach(tab => {
+            tab.classList.remove('active');
+        });
+        event.target.classList.add('active');
+
+        // Get history data based on tab
+        let historyData = [];
+        switch (tabType) {
+            case 'recent':
+                historyData = this.getRecentHistory(50);
+                break;
+            case 'today':
+                historyData = this.getTodayHistory();
+                break;
+            case 'completed':
+                historyData = this.getHistoryByAction('completed', 30);
+                break;
+            case 'deleted':
+                historyData = this.getHistoryByAction('deleted', 30);
+                break;
+        }
+
+        // Update history list
+        document.getElementById('historyList').innerHTML = this.renderHistoryList(historyData);
+    }
+
+    // Render history list
+    renderHistoryList(historyData) {
+        if (historyData.length === 0) {
+            return `
+                <div class="empty-state">
+                    <i class="fas fa-history"></i>
+                    <p>No history entries found</p>
+                </div>
+            `;
+        }
+
+        return historyData.map(entry => {
+            const date = new Date(entry.timestamp);
+            const timeAgo = this.getTimeAgo(date);
+            const actionIcon = this.getActionIcon(entry.action);
+            const actionColor = this.getActionColor(entry.action);
+            
+            return `
+                <div class="history-item">
+                    <div class="history-icon ${actionColor}">
+                        <i class="fas fa-${actionIcon}"></i>
+                    </div>
+                    <div class="history-details">
+                        <div class="history-action">
+                            <strong>${this.getActionText(entry.action)}</strong> ${entry.task.type} task
+                        </div>
+                        <div class="history-task-title">"${this.escapeHtml(entry.task.title)}"</div>
+                        <div class="history-meta">
+                            <span class="history-time">${timeAgo}</span>
+                            <span class="history-type">${entry.task.type}</span>
+                            ${entry.details.completedOverdue ? '<span class="overdue-badge">Completed Late</span>' : ''}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    // Get action icon
+    getActionIcon(action) {
+        const icons = {
+            'added': 'plus',
+            'completed': 'check',
+            'deleted': 'trash',
+            'cancelled': 'times',
+            'moved_to_pending': 'clock'
+        };
+        return icons[action] || 'question';
+    }
+
+    // Get action color
+    getActionColor(action) {
+        const colors = {
+            'added': 'success',
+            'completed': 'success',
+            'deleted': 'danger',
+            'cancelled': 'warning',
+            'moved_to_pending': 'info'
+        };
+        return colors[action] || 'secondary';
+    }
+
+    // Get action text
+    getActionText(action) {
+        const texts = {
+            'added': 'Added',
+            'completed': 'Completed',
+            'deleted': 'Deleted',
+            'cancelled': 'Cancelled',
+            'moved_to_pending': 'Moved to Pending'
+        };
+        return texts[action] || action;
+    }
+
+    // Get time ago string
+    getTimeAgo(date) {
+        const now = new Date();
+        const diffInSeconds = Math.floor((now - date) / 1000);
+        
+        if (diffInSeconds < 60) {
+            return 'Just now';
+        } else if (diffInSeconds < 3600) {
+            const minutes = Math.floor(diffInSeconds / 60);
+            return `${minutes} minute${minutes !== 1 ? 's' : ''} ago`;
+        } else if (diffInSeconds < 86400) {
+            const hours = Math.floor(diffInSeconds / 3600);
+            return `${hours} hour${hours !== 1 ? 's' : ''} ago`;
+        } else if (diffInSeconds < 604800) {
+            const days = Math.floor(diffInSeconds / 86400);
+            return `${days} day${days !== 1 ? 's' : ''} ago`;
+        } else {
+            return date.toLocaleDateString();
+        }
+    }
+
+    // Export history
+    exportHistory() {
+        const data = {
+            recentHistory: this.recentHistory,
+            taskHistory: this.taskHistory,
+            exportDate: new Date().toISOString(),
+            totalEntries: this.recentHistory.length
+        };
+        
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `task-history-export-${new Date().toISOString().split('T')[0]}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        
+        this.showNotification('History exported successfully!', 'success');
     }
 }
 
